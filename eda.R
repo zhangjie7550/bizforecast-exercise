@@ -1,15 +1,5 @@
----
-title: "README"
-author: "ZhangJie"
-output: github_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, cache = TRUE, fig.showtext = TRUE)
-
 library(tidyverse)
 library(ggthemes)
-library(showtext)
 # set random seed
 set.seed(1212)
 
@@ -21,11 +11,10 @@ new <- theme_set(theme_tufte() + theme(text = element_text(family = "Noto Sans C
 
 # read data
 dat <- read.csv("Data/cpl_and_conversion.csv") %>% as_tibble()
-```
 
-## Q1 利润为正态分布，95%置信区间见下
 
-```{r q1}
+# Q1月利润分布 -------------------------
+
 # 单日利润
 Profit_per_day <- function(){
     
@@ -63,6 +52,7 @@ profit_distribution <- replicate(3000, Profit_per_month())
 
 # 利润分布图
 pd <- profit_distribution %>% as_tibble()
+m <- mean(profit_distribution)
 
 pd %>% 
     ggplot(aes(x = value)) +
@@ -70,36 +60,25 @@ pd %>%
     geom_vline(xintercept = quantile(profit_distribution, probs = c(.025, .5,.975)), lty = 3) +
     labs(x = "月利润")
 
-
 # 95%置信区间
 quantile(profit_distribution, probs = c(.025, .975))
-```
 
-
-## Q2 目标达成和亏损概率见下
-
-```{r q2}
+# Q2 利润达成概率、亏损概率------------
 pd %>% 
     mutate(goal = ifelse(value >= 100000, 1, 0),
            loss = ifelse(value < 0, 1, 0)) %>% 
     summarise(goal_prob = mean(goal),
               loss_prob = mean(loss))
-```
 
-
-## Q3 累积分布函数见下
-
-```{r q3}
 # Q3 利润的累积函数---------------------
 pd %>% 
     ggplot(aes(value)) + 
     stat_ecdf(geom = "step") +
     labs(x = "月利润")
-```
 
-## Q4 结果修正见下
 
-```{r q4}
+# Q4 修正栗子转化率 ------------------
+
 # 建立Cpl 与 R(conversion rate)的关联
 p <- lm(dat$conversion_rate ~ dat$cost_per_lead)
 
@@ -164,11 +143,10 @@ pd_new %>%
     ggplot(aes(value)) + 
     stat_ecdf(geom = "step") +
     labs(x = "月利润")
-```
 
-## Q5 应该选用原方案
+# Q5 增加成本与栗子数量的方案对比--------------------
 
-```{r q5}
+
 Profit_per_day_increase_cost <- function(){
     
     
@@ -236,4 +214,3 @@ df <- data.frame(
 df %>% 
     ggplot(aes(x=cat, y=m, col=cat)) +
     geom_crossbar(aes(ymin = l, ymax = u),width=.05)
-```
